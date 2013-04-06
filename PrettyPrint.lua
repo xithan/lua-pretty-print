@@ -11,6 +11,8 @@ Usage
 
 ]]
 
+-- Change
+
 local PrettyPrint do
 	local isPrimitiveType = {string=true, number=true, boolean=true}
 
@@ -58,7 +60,7 @@ local PrettyPrint do
 		['nil']      = 8;
 	}
 
-	local function traverseTable(dataTable,tableRef,indent)
+	local function traverseTable(dataTable,tableRef,indent, depth)
 		local output = ""
 
 		local indentStr = string.rep("\t",indent)
@@ -96,6 +98,13 @@ local PrettyPrint do
 
 			local value = dataTable[key]
 			if type(value) == 'table' then
+        if depth then
+          if depth > 0 then
+            depth = depth - 1
+          else 
+            return output
+          end
+        end
 				if tableRef[value] == nil then -- prevent reference loops
 					tableRef[value] = true
 
@@ -121,7 +130,7 @@ local PrettyPrint do
 						else -- table is not primitive array
 							output = output
 							.. indentStr .. formatKey(key,in_seq) .. "{\n"
-							.. traverseTable(value,tableRef,indent+1)
+							.. traverseTable(value,tableRef,indent+1, depth)
 							.. indentStr .. "};\n"
 						end
 					else -- table is empty
@@ -137,8 +146,8 @@ local PrettyPrint do
 		return output
 	end
 
-	function PrettyPrint(dataTable)
-		return "return {\n" .. traverseTable(dataTable,{[dataTable]=true},1) .. "}"
+	function PrettyPrint(dataTable, depth)
+		return "return {\n" .. traverseTable(dataTable,{[dataTable]=true},1, depth) .. "}"
 	end
 end
 
